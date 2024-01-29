@@ -23,7 +23,7 @@ CustomActionsManager::CustomActionsManager(QSettings* settings,
   this->actions = new QMultiHash<QString,QAction*>;
   this->menus = new QMultiHash<QString,QMenu*>;
   this->mapper = new QSignalMapper(this);
-  connect(mapper, SIGNAL(mapped(QString)), SIGNAL(actionMapped(QString)));
+  connect(mapper, SIGNAL(mappedString(QString)), SIGNAL(actionMapped(QString)));
 }
 //---------------------------------------------------------------------------
 

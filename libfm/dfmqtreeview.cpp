@@ -277,7 +277,7 @@ void DfmQTreeView::updateElasticBandSelection()
     // TODO - would this still work if the columns could be re-ordered?
     QModelIndex startIndex = QTreeView::indexAt(boundingRect.topLeft());
     if (startIndex.parent().isValid()) {
-        startIndex = startIndex.parent().child(startIndex.row(), COLUMN_NAME);
+        startIndex = startIndex.parent().model()->index(startIndex.row(), COLUMN_NAME);
     } else {
         startIndex = model()->index(startIndex.row(), COLUMN_NAME);
     }
@@ -437,7 +437,9 @@ QRect DfmQTreeView::nameColumnRect(const QModelIndex& index) const
 
     if (index.isValid()) {
         QString filename = index.data(Qt::DisplayRole).toString();
-        const int itemContentWidth = DfmQStyledItemDelegate::nameColumnWidth(filename, QTreeView::viewOptions());
+        QStyleOptionViewItem option;
+        QTreeView::initViewItemOption(&option);
+        const int itemContentWidth = DfmQStyledItemDelegate::nameColumnWidth(filename, option);
         guessedItemContentRect.setWidth(itemContentWidth);
     }
 

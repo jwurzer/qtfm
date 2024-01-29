@@ -34,7 +34,7 @@ tabBar::tabBar(QHash<QString,QIcon> * icons)
 void tabBar::mousePressEvent(QMouseEvent * event)
 {
     //middle-click to close tab
-    if(event->button() == Qt::MidButton)
+    if(event->button() == Qt::MiddleButton)
     {
         int tab = tabAt(event->pos());
         if(tab != -1)
@@ -63,7 +63,7 @@ void tabBar::dragEnterEvent(QDragEnterEvent *event)
 //---------------------------------------------------------------------------
 void tabBar::dragMoveEvent(QDragMoveEvent *event)
 {
-    this->setCurrentIndex(tabAt(event->pos()));
+    this->setCurrentIndex(tabAt(event->position().toPoint()));
     event->acceptProposedAction();
 }
 
@@ -73,7 +73,7 @@ void tabBar::dropEvent(QDropEvent *event)
     QList<QUrl> paths = event->mimeData()->urls();
     QFileInfo file = QFileInfo(paths.at(0).path());
 
-    if(tabAt(event->pos()) == -1 && file.isDir())           //new tab
+    if(tabAt(event->position().toPoint()) == -1 && file.isDir())           //new tab
         addNewTab(file.filePath(),0);
     else
     {
@@ -86,9 +86,11 @@ void tabBar::dropEvent(QDropEvent *event)
             return;
         }
 
-        if(event->proposedAction() == 2)                             //cut, holding ctrl to copy is action 1
-            foreach(QUrl item, paths)
+        if(event->proposedAction() == 2) {                             //cut, holding ctrl to copy is action 1
+            foreach(QUrl item, paths) {
                 cutList.append(item.path());
+            }
+        }
 
         emit dragDropTab(event->mimeData(), tabData(currentIndex()).toString(), cutList);
     }

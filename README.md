@@ -52,12 +52,12 @@ All shortcuts can be modified.
 
 Download the latest [release](https://github.com/rodlie/qtfm/releases), then make sure you have the required dependencies.
 
-* Requires [Qt](http://qt.io) 5.2+ (LTS recommended)
-  * libQt5Widgets
-  * libQt5Gui
-  * libQt5Concurrent
-  * libQt5DBus
-  * libQt5Core
+* Requires [Qt](http://qt.io) 6.6.1+ (LTS recommended)
+  * libQt6Widgets
+  * libQt6Gui
+  * libQt6Concurrent
+  * libQt6DBus
+  * libQt6Core
 * Requires [hicolor-icon-theme](https://www.freedesktop.org/wiki/Software/icon-theme/)
 * Requires [adwaita-icon-theme](https://github.com/GNOME/adwaita-icon-theme) or similar
 * Requires [libinotify](https://github.com/libinotify-kqueue/libinotify-kqueue) *if using BSD/macOS*

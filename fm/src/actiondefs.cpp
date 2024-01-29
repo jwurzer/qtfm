@@ -436,7 +436,7 @@ void MainWindow::readShortcuts() {
         i.next();
         QStringList action;
         action << i.key() << i.value();
-        settings->setValue(QString(count), action);
+        settings->setValue(QString(QChar(count)), action);
         ++count;
     }
     settings->endGroup();
@@ -711,7 +711,7 @@ void MainWindow::addressChanged(int old, int now)
         tree->setCurrentIndex(modelTree->mapFromSource(modelList->index(temp.left(pos))));
     }
     else
-    if(QApplication::mouseButtons() == Qt::MidButton)
+    if(QApplication::mouseButtons() == Qt::MiddleButton)
     {
         QApplication::clipboard()->blockSignals(1);
         QApplication::clipboard()->clear(QClipboard::Selection);        //don't paste stuff

@@ -12,7 +12,7 @@
 #include <QDebug>
 #include <QIcon>
 #include <QDirIterator>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QTextStream>
 #include <QMap>
 #include <QMapIterator>
@@ -156,7 +156,7 @@ QString Common::findIconInDir(QString appPath,
         QString found = it.next();
         if (found.split("/").takeLast().split(".").takeFirst()==icon) {
             for (int i=0;i<iconSizes.size();++i) {
-                QString hasFile = found.replace(QRegExp("/[.*]x[.*]/"),QString("/%1x%1/").arg(iconSizes.at(i)));
+                QString hasFile = found.replace(QRegularExpression("/[.*]x[.*]/"),QString("/%1x%1/").arg(iconSizes.at(i)));
                 if (QFile::exists(hasFile)) { return hasFile; }
             }
             return found;
@@ -169,7 +169,7 @@ QString Common::findIconInDir(QString appPath,
             QString found = hicolor.next();
             if (found.split("/").takeLast().split(".").takeFirst()==icon) {
                 for (int i=0;i<iconSizes.size();++i) {
-                    QString hasFile = found.replace(QRegExp("/[.*]x[.*]/"),QString("/%1x%1/").arg(iconSizes.at(i)));
+                    QString hasFile = found.replace(QRegularExpression("/[.*]x[.*]/"),QString("/%1x%1/").arg(iconSizes.at(i)));
                     if (QFile::exists(hasFile)) { return hasFile; }
                 }
                 return found;
@@ -229,7 +229,7 @@ QStringList Common::findApplications(QString filename)
     QStringList result;
     if (filename.isEmpty()) { return result; }
     QString path = qgetenv("PATH");
-    QStringList paths = path.split(":", QString::SkipEmptyParts);
+    QStringList paths = path.split(":", Qt::SkipEmptyParts);
     for (int i=0;i<paths.size();++i) {
         QDirIterator it(paths.at(i),
                         QStringList("*"),
@@ -332,7 +332,7 @@ QStringList Common::getPixmaps(QString appPath)
     QStringList result;
     QStringList pixs = pixmapLocations(appPath);
     for (int i=0;i<pixs.size();++i) {
-        QDir pixmaps(pixs.at(i), "",  Q_NULLPTR, QDir::Files | QDir::NoDotAndDotDot);
+        QDir pixmaps(pixs.at(i), "", QDir::SortFlags{}, QDir::Files | QDir::NoDotAndDotDot);
         for (int i=0;i<pixmaps.entryList().size();++i) {
             result << QString("%1/%2").arg(pixmaps.absolutePath()).arg(pixmaps.entryList().at(i));
         }
@@ -513,10 +513,10 @@ QString Common::getDeviceForDir(QString dir)
     QTextStream ts(&mtab);
     QString root;
     QVector<QStringList> result;
-    QStringList entries = ts.readAll().split("\n", QString::SkipEmptyParts);
+    QStringList entries = ts.readAll().split("\n", Qt::SkipEmptyParts);
     for (int i=0;i<entries.length();++i) {
         QString line = entries.at(i);
-        QStringList info = line.split(" ", QString::SkipEmptyParts);
+        QStringList info = line.split(" ", Qt::SkipEmptyParts);
         if (info.size()>=2) {
             QString dev = info.at(0);
             QString mnt = info.at(1);

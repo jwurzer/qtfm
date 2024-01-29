@@ -328,7 +328,7 @@ void MainWindow::lateStart() {
   connect(customActManager, SIGNAL(actionFinished()), SLOT(clearCutItems()));
 
   // Connect path edit
-  connect(pathEdit, SIGNAL(activated(QString)),
+  connect(pathEdit, SIGNAL(textActivated(QString)),
           this, SLOT(pathEditChanged(QString)));
   connect(customComplete, SIGNAL(activated(QString)),
           this, SLOT(pathEditChanged(QString)));
@@ -583,7 +583,7 @@ void MainWindow::firstRunCustomActions(bool isFirstRun)
 
     QVector<QStringList> defActions = Common::getDefaultActions();
     for (int i=0;i<defActions.size();++i) {
-        settings->setValue(QString(i), defActions.at(i));
+        settings->setValue(QString(QChar(i)), defActions.at(i));
     }
 
     settings->endGroup();
@@ -629,7 +629,7 @@ void MainWindow::treeSelectionChanged(QModelIndex current, QModelIndex previous)
         setWindowTitle(APP_NAME);
     }
 
-    if (tree->hasFocus() && QApplication::mouseButtons() == Qt::MidButton) {
+    if (tree->hasFocus() && QApplication::mouseButtons() == Qt::MiddleButton) {
         listItemPressed(modelView->mapFromSource(modelList->index(name.filePath())));
         tabs->setCurrentIndex(tabs->count() - 1);
         if (currentView == 2) { detailTree->setFocus(Qt::TabFocusReason); }
@@ -710,7 +710,7 @@ void MainWindow::dirLoaded(bool thumbs)
     statusSize->setText(QString("%1 items").arg(items.count()));
     statusDate->setText(QString("%1").arg(total));
 
-    if (thumbsAct->isChecked() && thumbs) { QtConcurrent::run(modelList,&myModel::loadThumbs,items); }
+    if (thumbsAct->isChecked() && thumbs) { QtConcurrent::run(&myModel::loadThumbs, modelList, items); }
     updateGrid();
 }
 
@@ -755,7 +755,7 @@ void MainWindow::listSelectionChanged(const QItemSelection selected, const QItem
     statusName->clear();
 
     if(items.count() == 0) {
-        curIndex = pathEdit->itemText(0);
+        curIndex = QFileInfo(pathEdit->itemText(0));
         return;
     }
 
@@ -786,7 +786,7 @@ void MainWindow::listSelectionChanged(const QItemSelection selected, const QItem
 
         statusName->setText(name + "   ");
         statusSize->setText(QString("%1   ").arg(total));
-        statusDate->setText(QString("%1").arg(file.lastModified().toString(Qt::SystemLocaleShortDate)));
+        statusDate->setText(QString("%1").arg(file.lastModified().toString(Qt::TextDate))); // Qt::SystemLocaleShortDate not available at Qt6
     }
     else {
         statusName->setText(total + "   ");
@@ -816,7 +816,7 @@ void MainWindow::listItemPressed(QModelIndex current)
     //middle-click -> open new tab
     //ctrl+middle-click -> open new instance
 
-    if (QApplication::mouseButtons() == Qt::MidButton) {
+    if (QApplication::mouseButtons() == Qt::MiddleButton) {
         if(modelList->isDir(modelView->mapToSource(current))) {
             if (QApplication::keyboardModifiers() == Qt::ControlModifier) { openFile(); }
             else { addTab(modelList->filePath(modelView->mapToSource(current))); }
@@ -982,7 +982,7 @@ void MainWindow::dragLauncher(const QMimeData *data, const QString &newPath,
   QList<QUrl> files = data->urls();
 
   // get original path
-  QStringList getOldPath = files.at(0).toLocalFile().split("/", QString::SkipEmptyParts);
+  QStringList getOldPath = files.at(0).toLocalFile().split("/", Qt::SkipEmptyParts);
   QString oldPath;
   for (int i=0;i<getOldPath.size()-1;++i) { oldPath.append(QString("/%1").arg(getOldPath.at(i))); }
   QString oldDevice = Common::getDeviceForDir(oldPath);
@@ -1256,16 +1256,15 @@ void MainWindow::contextMenuEvent(QContextMenuEvent * event) {
     if (listSelectionModel->hasSelection()) {
 
       // Get index of source model
-      curIndex = modelList->filePath(modelView->mapToSource(listSelectionModel->currentIndex()));
+      curIndex = QFileInfo(modelList->filePath(modelView->mapToSource(listSelectionModel->currentIndex())));
 
       // File
       if (!curIndex.isDir()) {
         QString type = modelList->getMimeType(modelList->index(curIndex.filePath()));
 
         // Add custom actions to the list of actions
-        QHashIterator<QString, QAction*> i(*customActManager->getActions());
-        while (i.hasNext()) {
-          i.next();
+        for (auto i = customActManager->getActions()->constBegin();
+            i != customActManager->getActions()->constEnd(); ++i) {
           qDebug() << "custom action" << i.key() << i.key() << i.value();
           if (curIndex.completeSuffix().endsWith(i.key())) { actions.append(i.value()); }
         }
@@ -1301,9 +1300,8 @@ void MainWindow::contextMenuEvent(QContextMenuEvent * event) {
 
         // Add menus
         // TODO: ???
-        QHashIterator<QString, QMenu*> m(*customActManager->getMenus());
-        while (m.hasNext()) {
-          m.next();
+        for (auto m = customActManager->getMenus()->constBegin();
+            m != customActManager->getMenus()->constEnd(); ++m) {
           if (curIndex.completeSuffix().endsWith(m.key())) { popup->addMenu(m.value()); }
         }
 
@@ -1410,7 +1408,7 @@ void MainWindow::contextMenuEvent(QContextMenuEvent * event) {
     if (focusWidget() == bookmarksList) {
       listSelectionModel->clearSelection();
       if (bookmarksList->indexAt(bookmarksList->mapFromGlobal(event->globalPos())).isValid()) {
-        curIndex = bookmarksList->currentIndex().data(BOOKMARK_PATH).toString();
+        curIndex = QFileInfo(bookmarksList->currentIndex().data(BOOKMARK_PATH).toString());
         isMedia = bookmarksList->currentIndex().data(MEDIA_MODEL).toBool();
         if (!isMedia) {
             popup->addAction(delBookmarkAct);
@@ -1438,7 +1436,7 @@ void MainWindow::contextMenuEvent(QContextMenuEvent * event) {
       popup->addSeparator();
     } else {
       // tree
-      curIndex = modelList->filePath(modelTree->mapToSource(tree->currentIndex()));
+      curIndex = QFileInfo(modelList->filePath(modelTree->mapToSource(tree->currentIndex())));
       if (curIndex.isFile()) { isTreeFile = true;}
 
       bookmarksList->clearSelection();
