@@ -214,11 +214,95 @@ void MainWindow::terminalRun() {
     settings->setValue("term", term);
   }
 
+  // parse arguments for terminal
+  bool quoteIsOpen = false;
+  bool quoteIsUsed = false;
+  bool isEscSequence = false;
+  QString nextArg;
+  QStringList args;
+  for (QChar ch : term) {
+    if (isEscSequence) {
+      switch (ch.unicode()) {
+        case '"':
+          nextArg.push_back('"');
+          break;
+        case '\\':
+          nextArg.push_back('\\');
+          break;
+        case 't':
+          nextArg.push_back('\t');
+          break;
+        case 'n':
+          nextArg.push_back('\n');
+          break;
+        case 'r':
+          nextArg.push_back('\r');
+          break;
+        case 'd':
+          nextArg.append(pathEdit->itemText(0));
+          break;
+        default:
+          qDebug() << "\\" << ch << " is ignored";
+          break;
+      }
+      isEscSequence = false;
+    }
+    else {
+      // --> normal character (not from escape sequence)
+      if (ch == '\\') {
+        isEscSequence = true;
+      }
+      else if (ch == '"') {
+        quoteIsOpen = !quoteIsOpen;
+        quoteIsUsed = true;
+      }
+      else if (ch == ' ') {
+        if (quoteIsOpen) {
+          nextArg.push_back(ch);
+        }
+        else {
+          args.push_back(nextArg);
+          nextArg.clear();
+          quoteIsUsed = false;
+        }
+      }
+      else {
+        // --> no special handled character
+        nextArg.push_back(ch);
+      }
+    }
+  }
+  if (quoteIsOpen) {
+    qDebug() << "warning: quote \" is not closed!";
+  }
+  if (isEscSequence) {
+    qDebug() << "warning: escape sequence with \\ is not finished!";
+  }
+  if (!nextArg.isEmpty() || quoteIsUsed) {
+    args.push_back(nextArg);
+    nextArg.clear();
+    quoteIsUsed = false;
+  }
+
+  // The binary filename must be removed from the args.
+  // The args for QProcess::startDetached() should not include the binary filename.
+  // e.g. a started C-Programm with int main(int argc, char** argv) can read
+  // the binary filename with argv[0]. The filename is correct included at argv and doesn't
+  // need to be included at args list!
+  QString name;
+  if (!args.empty()) {
+    name = args.at(0);
+    args.removeAt(0);
+  }
+
+  if (name.isEmpty()) {
+    qDebug() << "no binary filename for startDetached!";
+  }
+
   // Starts terminal
-  QStringList args(term.split(" "));
-  QString name = args.at(0);
-  args.removeAt(0);
-  QProcess::startDetached(name, args, pathEdit->itemText(0));
+  if (!QProcess::startDetached(name, args, pathEdit->itemText(0))) {
+    qDebug() << "startDetached failed!";
+  }
 }
 //---------------------------------------------------------------------------
 

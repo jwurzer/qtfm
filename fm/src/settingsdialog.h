@@ -35,6 +35,7 @@ public slots:
   bool saveSettings();
 
 protected slots:
+  void infoTermCommand();
   void addCustomAction();
   void delCustomAction();
   void infoCustomAction();
@@ -72,6 +73,7 @@ protected:
   QComboBox* comboDADctl;
   QComboBox* comboDADshift;
   QComboBox* comboDADalt;
+  QToolButton *infoTermButton;
   QLineEdit* editTerm;
   QComboBox* cmbIconTheme;
   QComboBox* cmbDefaultMimeApps;

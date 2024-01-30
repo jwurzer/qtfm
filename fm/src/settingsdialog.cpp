@@ -6,6 +6,7 @@
 
 #include <QFormLayout>
 #include <QLineEdit>
+#include <QLabel>
 #include <QPushButton>
 #include <QHeaderView>
 #include <QMessageBox>
@@ -156,9 +157,18 @@ QWidget *SettingsDialog::createGeneralSettings() {
 
   // Terminal emulator
   QGroupBox* grpTerm = new QGroupBox(tr("Terminal emulator"), widget);
-  QFormLayout* layoutTerm = new QFormLayout(grpTerm);
+  QVBoxLayout* layoutTerm = new QVBoxLayout(grpTerm);
+  QLabel* lblTerm = new QLabel(tr("Command:"));
+  infoTermButton = new QToolButton();
+  infoTermButton->setToolTip(tr("Usage information"));
+  infoTermButton->setIcon(QIcon::fromTheme("dialog-question",
+                                       QIcon::fromTheme("help-browser")));
+  connect(infoTermButton, SIGNAL(clicked()), this, SLOT(infoTermCommand()));
+
   editTerm = new QLineEdit(grpTerm);
-  layoutTerm->addRow(tr("Command: "), editTerm);
+  layoutTerm->addWidget(lblTerm);
+  layoutTerm->addWidget(infoTermButton);
+  layoutTerm->addWidget(editTerm);
 
   // Layout of widget
   layoutWidget->addWidget(grpBehav);
@@ -1057,6 +1067,37 @@ void SettingsDialog::onActionChanged(QTreeWidgetItem *item, int column) {
   }
 }
 //---------------------------------------------------------------------------
+
+void SettingsDialog::infoTermCommand() {
+
+  // Info
+  QString info = tr("Arguments are supported.<br>"
+                    "If an argument should include a blank then quotes (<code>\"</code>) must be used.<br>"
+                    "Escape sequences are supported and start with <code>\\</code><br>"
+                    "<br>"
+                    "Supported escape sequences are:<br>"
+                    "<code>\\\\</code> ... for <code>\\</code><br>"
+                    "<code>\\\"</code> ... for <code>\"</code><br>"
+                    "<code>\\t</code> ... for tab (<code>\\t</code>)<br>"
+                    "<code>\\n</code> ... for new line (<code>\\n</code>)<br>"
+                    "<code>\\d</code> ... for current directory<br>"
+                    "<br>"
+                    "examples:<br>"
+                    //"<font size = 1 >"
+                    "<code>xterm</code><br>"
+                    "<code>/Applications/Rio.app/Contents/MacOS/rio --working-dir \\d</code><br>"
+                    //"</font>"
+                    );
+
+  // Displays info
+  QMessageBox msgBox;
+  msgBox.setWindowTitle(tr("Usage"));
+  msgBox.setText(info);
+  QSpacerItem* horizontalSpacer = new QSpacerItem(600, 0, QSizePolicy::Minimum, QSizePolicy::Expanding);
+  QGridLayout* layout = (QGridLayout*)msgBox.layout();
+  layout->addItem(horizontalSpacer, layout->rowCount(), 0, 1, layout->columnCount());
+  msgBox.exec();
+}
 
 /**
  * @brief Adds new custom action
