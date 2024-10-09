@@ -110,15 +110,17 @@ public:
 
     Q_DECLARE_FLAGS(CopyFlags, CopyFlag)
 
-    int copy(const QString &sourceFile, const QString &destinationPath,
-                CopyFlags flags = CopyFlags{});
+    // is not used
+    //int copy(const QString &sourceFile, const QString &destinationPath,
+    //            CopyFlags flags = CopyFlags{});
     QList<int> copyFiles(const QStringList &sourceFiles, const QString &destinationDir,
-                CopyFlags flags = CopyFlags{});
+                CopyFlags flags, bool renameCopies);
     QList<int> copyDirectory(const QString &sourceDir, const QString &destinationDir,
-                CopyFlags flags = CopyFlags{});
+                CopyFlags flags, bool renameCopies);
 
-    int move(const QString &sourceFile, const QString &destinationPath,
-                CopyFlags flags = CopyFlags{});
+    // is not used
+    //int move(const QString &sourceFile, const QString &destinationPath,
+    //            CopyFlags flags = CopyFlags{});
     QList<int> moveFiles(const QStringList &sourceFiles, const QString &destinationDir,
                 CopyFlags flags = CopyFlags{});
     QList<int> moveDirectory(const QString &sourceDir, const QString &destinationDir,

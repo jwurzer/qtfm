@@ -1115,19 +1115,52 @@ void MainWindow::pasteLauncher(const QList<QUrl> &files,
             else if (info.isFile()) { _files << info.absoluteFilePath(); }
         }
         if (_files.size()>0 || _dirs.size()>0) {
+            QFileInfo fid(newPath);
+            bool renameCopy = false;
+            if (fid.isDir()) {
+                QString dstPath = fid.filePath(); // here filePath() and not path()!
+                renameCopy = true;
+                for (const QString& _file : _files) {
+                    QFileInfo fis(_file);
+                    // here path() and not filePath() because only the path without filename is needed.
+                    if (fis.path() != dstPath) {
+                        renameCopy = false;
+                        break;
+                    }
+                }
+                if (renameCopy) {
+                    for (const QString& _dir: _dirs) {
+                        QFileInfo fis(_dir);
+                        // here also path() and not filePath() because only the parent path is necessary.
+                        if (fis.path() != dstPath) {
+                            //qInfo() << "different paths: " << fis.path() << " != " << dstPath;
+                            renameCopy = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (renameCopy) {
+                qInfo() << "RENAMING the copies! (all at the same directory)";
+            }
+            else {
+                qInfo() << "NO renaming the copies! (different directories)";
+            }
+
             QtFileCopier *copyHandler = new QtFileCopier(this);
             QtCopyDialog *copyDialog = new QtCopyDialog(copyHandler, this);
             copyDialog->setMinimumDuration(100);
             copyDialog->setAutoClose(true);
             if (_files.size()>0) {
-                if (link) { copyHandler->copyFiles(_files, newPath, QtFileCopier::MakeLinks); }
-                else { copyHandler->copyFiles(_files, newPath); }
+                if (link) { copyHandler->copyFiles(_files, newPath, QtFileCopier::MakeLinks, renameCopy); }
+                else { copyHandler->copyFiles(_files, newPath, QtFileCopier::CopyFlags{}, renameCopy); }
                 //qDebug() << "COPY FILES" << _files << "TO" << newPath << "SYMLINK?" << link;
             }
             if (_dirs.size()>0) {
                 for (int i=0;i<_dirs.size();++i) {
-                    if (link) { copyHandler->copyDirectory(_dirs.at(i), newPath, QtFileCopier::MakeLinks); }
-                    else { copyHandler->copyDirectory(_dirs.at(i), newPath); }
+                    if (link) { copyHandler->copyDirectory(_dirs.at(i), newPath, QtFileCopier::MakeLinks, renameCopy); }
+                    else { copyHandler->copyDirectory(_dirs.at(i), newPath, QtFileCopier::CopyFlags{}, renameCopy); }
                     //qDebug() << "COPY DIR" <<_dirs.at(i) << "TO" << newPath << "SYMLINK?" << link;
                 }
             }
