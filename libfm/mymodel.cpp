@@ -41,6 +41,21 @@ extern "C" {
 }
 #endif
 
+namespace {
+void cleanupEmptyIcons(QHash<QString,QIcon>& icons) {
+    QHash<QString,QIcon>::Iterator i = icons.begin();
+    while (i != icons.end()) {
+        if (i.value().availableSizes().empty()) {
+            qDebug() << "Remove empty icon for " << i.key();
+            i = icons.erase(i);
+        }
+        else {
+            ++i;
+        }
+    }
+}
+}
+
 /**
  * @brief Creates file system model
  * @param realMime
@@ -80,11 +95,14 @@ myModel::myModel(bool realMime, MimeUtils *mimeUtils, QObject *parent)
 
   // Loads cached mime icons
   QFile fileIcons(QString("%1/file.cache").arg(Common::configDir()));
+#if 0
   if (fileIcons.open(QIODevice::ReadOnly)) {
       QDataStream out(&fileIcons);
       out >> *mimeIcons;
       fileIcons.close();
+      cleanupEmptyIcons(*mimeIcons);
   }
+#endif
 
   // Loads folder cache
   fileIcons.setFileName(QString("%1/folder.cache").arg(Common::configDir()));
@@ -93,6 +111,7 @@ myModel::myModel(bool realMime, MimeUtils *mimeUtils, QObject *parent)
       out.setDevice(&fileIcons);
       out >> *folderIcons;
       fileIcons.close();
+      cleanupEmptyIcons(*folderIcons);
   }
 
   // Create root item
@@ -1261,6 +1280,7 @@ QVariant myModel::findIcon(myModelItem *item) const {
   QString suffix = FileUtils::getRealSuffix(type.fileName()); /*type.suffix();*/
   if (mimeIcons->contains(suffix)) {
       qDebug() << "USING SUFFIX ICON FOR" << suffix << item->absoluteFilePath();
+      qDebug() << mimeIcons->value(suffix).availableSizes();
       return mimeIcons->value(suffix);
   }
 
@@ -1306,6 +1326,22 @@ QVariant myModel::findIcon(myModelItem *item) const {
     theIcon = FileUtils::searchMimeIcon(mimeType);
   }
 
+  QList<QSize> iconSizes = theIcon.availableSizes();
+#if 0
+  if (iconSizes.empty()) {
+      qDebug() << "icon: CREATE NEW ICON for suffix " << suffix << " !!!. no sizes available!!";
+      int iw = 64;
+      int ih = 64;
+      QPixmap pixmap(iw, ih);
+      pixmap.fill();
+      QPainter painter(&pixmap);
+      painter.setPen(QColor(255, 0, 0, 128));
+      painter.drawRect(QRect(1, 1, iw - 2, ih - 2));
+      theIcon = QIcon(pixmap);
+  }
+#endif
+  qDebug() << "icon:  search: " << QIcon::themeSearchPaths() << ", theme: " << QIcon::themeName() <<
+           " sizes count: " << iconSizes.size() << ", " << iconSizes;
   // Insert icon to the list of icons
   mimeIcons->insert(suffix, theIcon);
   return theIcon;
@@ -1329,6 +1365,19 @@ QVariant myModel::findMimeIcon(myModelItem *item) const {
 
   // Search file system for icon
   QIcon theIcon = FileUtils::searchMimeIcon(mime);
+
+  QList<QSize> iconSizes = theIcon.availableSizes();
+  if (iconSizes.empty()) {
+      qDebug() << "icon: CREATE NEW ICON. no sizes available!!";
+      int iw = 64;
+      int ih = 64;
+      QPixmap pixmap(iw, ih);
+      QPainter painter(&pixmap);
+      painter.setPen(QColor(255, 0, 0, 128));
+      painter.drawRect(QRect(1, 1, iw - 2, ih - 2));
+      theIcon = QIcon(pixmap);
+  }
+
   mimeIcons->insert(mime, theIcon);
   return theIcon;
 }
