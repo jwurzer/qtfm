@@ -743,9 +743,13 @@ void SettingsDialog::readSettings() {
   for (int i = 0; i < keys.count(); ++i) {
     QApplication::processEvents();
     QStringList temp = settingsPtr->value(keys.at(i)).toStringList();
+    if (temp.size() < 4) {
+        qDebug() << "Wrong custom action entry";
+        continue;
+    }
     bool setChecked = 0;
     QString cmd = temp.at(3);
-    if (cmd.at(0) == '|') {
+    if (cmd.size() >= 1 && cmd.at(0) == '|') {
       cmd.remove(0, 1);
       setChecked = 1;
     }
@@ -1085,6 +1089,8 @@ void SettingsDialog::infoTermCommand() {
                     "examples:<br>"
                     //"<font size = 1 >"
                     "<code>xterm</code><br>"
+                    "<code>open -a Terminal \\d</code><br>"
+                    "<code>open -a iTerm \\d</code><br>"
                     "<code>/Applications/Rio.app/Contents/MacOS/rio --working-dir \\d</code><br>"
                     //"</font>"
                     );
