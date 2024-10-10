@@ -2,6 +2,8 @@
 
 #include <QPainterPath>
 
+// icon view
+
 bool IconViewDelegate::eventFilter(QObject *object,
                                    QEvent *event)
 {

@@ -12,6 +12,8 @@
 #include <QModelIndex>
 #include <QPainter>
 
+// icon view
+
 class IconViewDelegate : public QStyledItemDelegate
 {
 private: // workaround for QTBUG

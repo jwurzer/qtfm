@@ -680,6 +680,7 @@ void MainWindow::toggleIcons() {
   }
 
   if (iconAct->isChecked()) {
+    // --> icon view
     currentView = 1;
     list->setViewMode(QListView::IconMode);
     list->setItemDelegate(ivdelegate);
@@ -691,6 +692,7 @@ void MainWindow::toggleIcons() {
     list->setGridSize(QSize(zoom, zoom));
     list->setIconSize(QSize(zoom, zoom));
     list->setFlow(QListView::LeftToRight);
+    list->setSpacing(0);
 
     modelList->setMode(thumbsAct->isChecked());
     stackWidget->setCurrentIndex(0);
@@ -702,14 +704,31 @@ void MainWindow::toggleIcons() {
     if (tabs->count()) tabs->setType(1);
     updateGrid();
   } else {
+    // --> list view / compact view
     currentView = 0;
-    list->setViewMode(QListView::ListMode);
+    /*
+     * For the list view / compact view
+     * also the IconMode instead of the ListMode is used.
+     * This has the advantage of better usability for selecting multiple files
+     * But using IconMode needs a hack for file renaming.
+     * If a file is renamed then the edit box is under the icon for IconMode and not right of the icon.
+     * Therefore the icon size is set to 1x1 and additionally the real icon size is set with
+     * ildelegate->setIconSize(zoomList, zoomList) which is necessary do have the correct icon size.
+     *
+     * TODO: Is there a function to set the edit position to the right side after the icon instead of the bottom?
+     */
+    //list->setViewMode(QListView::ListMode);
+    list->setViewMode(QListView::IconMode);
     list->setItemDelegate(ildelegate);
     list->setGridSize(QSize());
-    list->setIconSize(QSize(zoomList, zoomList));
+    //list->setIconSize(QSize(zoomList, zoomList));
+    list->setIconSize(QSize(1, 1)); // hack for renameFile which calls edit()
+    ildelegate->setIconSize(zoomList, zoomList); // necessary do have the correct icon size
     list->setFlow(QListView::TopToBottom);
+    list->setSpacing(2);
 
     modelList->setMode(thumbsAct->isChecked());
+
     list->setMouseTracking(false);
 
     if (tabs->count()) tabs->setType(0);

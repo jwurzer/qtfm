@@ -1733,7 +1733,14 @@ void MainWindow::openInApp()
 
 void MainWindow::updateGrid()
 {
-    if (list->viewMode() != QListView::IconMode) { return; }
+    if (list->viewMode() != QListView::IconMode) {
+        return;
+    }
+    if (currentView != 1 /* icon view */) {
+        return;
+    }
+
+    // --> it's the icon view
     qDebug() << "updateGrid";
     QFontMetrics fm = fontMetrics();
     int textWidth = fm.averageCharWidth() * 17;
